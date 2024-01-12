@@ -5,11 +5,11 @@ from sklearn import svm, metrics, neighbors, multioutput, multiclass, linear_mod
                     discriminant_analysis, kernel_ridge, gaussian_process, cross_decomposition, tree, ensemble, \
                     model_selection, calibration, neural_network
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 import matplotlib.pyplot as plt
 
 # Parameters
-usedModel = "gpc"   # Model: {knn, svc, gpc, vc}
+usedModel = "knn"   # Model: {knn, svc, gpc, vc}
 
 # Import data
 
@@ -36,7 +36,7 @@ def split(pwd_types, features):
 
     for c in pwd_types.keys():
         aux = features.loc[features["P.Type"] == c]
-        tr, ts = train_test_split(aux, test_size=0.15)
+        tr, ts = train_test_split(aux, test_size=0.25)
         train = pd.concat([train if not train.empty else None, tr], ignore_index=True)
         test = pd.concat([test if not test.empty else None, ts], ignore_index=True)
 
@@ -72,33 +72,33 @@ def gen_c(n, start, finish):
 
 if usedModel.lower() == "knn":
     ### KNN:
-    best = [0, 0, 0, 0]
+    best = [0, 0, 0, 0, 0]
     weight = ["uniform", "distance"]
     metrics = ["euclidean", "manhattan", "chebyshev", "canberra", "braycurtis"]
     history = {}
+    n_size = 10
+    xtrain, ytrain, xtest, ytest = split(types, data)
+    ytrain, ytest = labelT(ytrain, ytest)
 
     for metric in metrics:
-        hist = np.zeros((2, 20))
+        hist = np.zeros((2, n_size))
         for w in range(len(weight)):
-            for n in range(1, 21):
-                bestrandom = 0
-                for i in range(10):
-                    xtrain, ytrain, xtest, ytest = split(types, data)
-                    ytrain, ytest = labelT(ytrain, ytest)
-                    base = neighbors.KNeighborsClassifier(n_neighbors=n, weights=weight[w], metric=metric)
-                    model = pipeline.make_pipeline(StandardScaler(), base)
-                    model.fit(xtrain, ytrain)
-                    acc = model.score(xtest, ytest)
-                    if acc > bestrandom:
-                        bestrandom = acc
-                hist[w, n-1] = bestrandom
-                if bestrandom > best[3]:
-                    best = [metric, weight[w], n, bestrandom]
+            for n in range(1, n_size+1):
+                base = neighbors.KNeighborsClassifier(n_neighbors=n, weights=weight[w], metric=metric)
+                model = pipeline.make_pipeline(StandardScaler(), base)
+                scores = cross_val_score(model, xtrain, ytrain, cv=5)
+                smean = scores.mean()
+                hist[w, n-1] = smean
+                if smean > best[3]:
+                    best = [metric, weight[w], n, smean, scores.std()]
         history[metric] = hist
 
-
-    print("Best: (Metric: {}, Weights: {}, Neighbors: {}, acc: {:.2%})".format(best[0], best[1], best[2], best[3]))
-
+    print("Best in cross validation: (Metric: {}, Weights: {}, Neighbors: {}, acc: {:.2%}+-{:.1%})".format(best[0], best[1], best[2], best[3], best[4]))
+    base = neighbors.KNeighborsClassifier(n_neighbors=best[2], weights=best[1], metric=best[0])
+    model = pipeline.make_pipeline(StandardScaler(), base)
+    model.fit(xtrain, ytrain)
+    acc = model.score(xtest, ytest)
+    print("Final prediction: %0.2%" % acc)
 
     x_pos = np.arange(start=1, stop=21)
     relPos = [-0.2, -0.1, 0, 0.1, 0.2]
