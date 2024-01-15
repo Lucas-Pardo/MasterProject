@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 # Parameters
-usedModel = "gpc"   # Model: {knn, svc, gpc, vc}
+usedModel = "knn"   # Model: {knn, svc, gpc, vc}
 
 # Import data
 
@@ -36,7 +36,7 @@ def split(pwd_types, features):
 
     for c in pwd_types.keys():
         aux = features.loc[features["P.Type"] == c]
-        tr, ts = train_test_split(aux, test_size=0.15)
+        tr, ts = train_test_split(aux, test_size=0.25)
         train = pd.concat([train if not train.empty else None, tr], ignore_index=True)
         test = pd.concat([test if not test.empty else None, ts], ignore_index=True)
 
