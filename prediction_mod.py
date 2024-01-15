@@ -86,7 +86,7 @@ if usedModel.lower() == "knn":
             for n in range(1, n_size+1):
                 base = neighbors.KNeighborsClassifier(n_neighbors=n, weights=weight[w], metric=metric)
                 model = pipeline.make_pipeline(StandardScaler(), base)
-                scores = cross_val_score(model, xtrain, ytrain, cv=5)
+                scores = cross_val_score(model, xtrain, ytrain, cv=3)
                 smean = scores.mean()
                 hist[w, n-1] = smean
                 if smean > best[3]:
@@ -98,9 +98,14 @@ if usedModel.lower() == "knn":
     model = pipeline.make_pipeline(StandardScaler(), base)
     model.fit(xtrain, ytrain)
     acc = model.score(xtest, ytest)
-    print("Final prediction: %0.2%" % acc)
+    print("Final prediction: {:.2%}".format(acc))
+    base = neighbors.KNeighborsClassifier(n_neighbors=2, weights="distance", metric="euclidean")
+    model = pipeline.make_pipeline(StandardScaler(), base)
+    model.fit(xtrain, ytrain)
+    acc = model.score(xtest, ytest)
+    print("Final prediction: {:.2%}".format(acc))
 
-    x_pos = np.arange(start=1, stop=21)
+    x_pos = np.arange(start=1, stop=n_size+1)
     relPos = [-0.2, -0.1, 0, 0.1, 0.2]
     colors = ["orangered", "gold", "limegreen", "dodgerblue", "violet"]
     for w in range(len(weight)):
