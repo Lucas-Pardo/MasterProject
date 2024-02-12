@@ -65,15 +65,21 @@ def gen_wave(h: float = 1.0, t_max: float = 1e3, t_on: float = 30.0, t_off: floa
 
 
 tp = "t"
-time, signal = gen_wave(tp=tp, c=2e-2)
-plt.plot(time, signal)
-plt.xlabel("Time (µs)")
-plt.ylabel("Voltage (V)")
-plt.title("Simulated waveform")
-plt.show()
+# time, signal = gen_wave(tp=tp, c=2e-2)
+# plt.plot(time, signal)
+# plt.xlabel("Time (µs)")
+# plt.ylabel("Voltage (V)")
+# plt.title("Simulated waveform")
+# plt.show()
+#
+# if input("Do you want to save this signal? (y/n): ").lower() == "y":
+#     c = len(glob("./Data/Simulated data/"+tp+"*.csv"))
+#     data = pd.Series(data=signal, index=time)
+#     data.to_csv("./Data/Simulated data/"+tp+str(c+1)+".csv")
 
-cmd = input("Do you want to save this signal? (y/n): ")
-if cmd.lower() == "y":
-    c = len(glob("./Data/Simulated data/"+tp+"*.csv"))
-    data = pd.Series(data=signal, index=time)
-    data.to_csv("./Data/Simulated data/"+tp+str(c+1)+".csv")
+data_iter = 10
+for i in range(data_iter):
+    time, signal = gen_wave(tp=tp, c=2e-2)
+    c = len(glob("./Data/Simulated data/" + tp + "*.csv"))
+    data = pd.DataFrame(data={"timestamp": time, "target": signal})
+    data.to_csv("./Data/Simulated data/" + tp + str(c + 1) + ".csv", index=False)
