@@ -6,7 +6,7 @@ import pandas as pd
 from glob import glob
 
 
-def gen_wave(h: float = 1.0, t_max: float = 1e3, t_on: float = 30.0, t_off: float = 40.0, v_n: float = 100.0,
+def gen_wave(h: float = 1.0, t_max: float = 2**10, t_on: float = 30.0, t_off: float = 40.0, v_n: float = 100.0,
              r: float = 1e6, c: float = 3e-3, tp: str = "t"):
     # h: step size (µs)
     # t_max: simulation time (µs)
@@ -31,41 +31,54 @@ def gen_wave(h: float = 1.0, t_max: float = 1e3, t_on: float = 30.0, t_off: floa
             if random.random() > 0.2:
                 v_var = random.gammavariate(0.5, 0.2)
                 for j in range(int(t_ig / h)):
+                    if i == n:
+                        break
                     time.append(i*h)
                     signal.append((1 - v_var)*v + random.gammavariate(1, 0.2))
                     i += 1
                 for j in range(int((t_on - t_ig) / h)):
+                    if i == n:
+                        break
                     time.append(i * h)
                     signal.append(0.4*v + random.gammavariate(1, 0.2))
                     i += 1
             else:
                 for j in range(int(t_on / h)):
+                    if i == n:
+                        break
                     time.append(i * h)
                     signal.append(v + random.gammavariate(1, 0.2))
                     i += 1
             for j in range(int(t_off / h)):
+                if i == n:
+                    break
                 time.append(i * h)
                 signal.append(0)
                 i += 1
     else:
         i = 1
         tau = 1 / (r*c)
-        while i <= n:
+        while i < n:
             if random.random() > 0.98:
                 v = 0
             else:
                 v = v_n
-            v_var = random.gammavariate(3, 0.2)
+            v_var = random.gauss(0.79, .05)
+            if v_var > 0.8:
+                v_var = 0.8
             tau_var = random.gammavariate(4, 0.35)
-            for j in range(int(tau_var*tau*1e6 / h)):
+            time_var = random.gauss(12, 0.05)
+            for j in range(int(time_var*tau_var*tau*1e6 / h)):
+                if i == n:
+                    break
                 time.append(i * h)
                 signal.append(v_var*v*(1 - exp(-j*h*1e-6/(tau_var*tau))) + random.gammavariate(1, 0.3))
                 i += 1
     return time, signal
 
 
-tp = "t"
-# time, signal = gen_wave(tp=tp, c=2e-2)
+tp = "rc"
+# time, signal = gen_wave(tp=tp, c=2e-1)
 # plt.plot(time, signal)
 # plt.xlabel("Time (µs)")
 # plt.ylabel("Voltage (V)")
@@ -79,7 +92,7 @@ tp = "t"
 
 data_iter = 10
 for i in range(data_iter):
-    time, signal = gen_wave(tp=tp, c=2e-2)
+    time, signal = gen_wave(tp=tp, c=2e-1)
     c = len(glob("./Data/Simulated data/" + tp + "*.csv"))
     data = pd.DataFrame(data={"timestamp": time, "target": signal})
     data.to_csv("./Data/Simulated data/" + tp + str(c + 1) + ".csv", index=False)
