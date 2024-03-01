@@ -1,0 +1,97 @@
+% !TeX root = ./keio-thesis.tex
+\documentclass[12pt,oneside]{src/keio-master-thesis}
+
+%% Import additional packages and header definitions
+% For the LaTex newbies, \input let's you introduce a .tex file as if it were
+% part of the current file
+\input{src/packages}
+
+%% Page layout: approx. 1" margins.
+\usepackage[
+    reset,
+    letterpaper,
+    vscale=.80, % Use 75% of the total vertical space (default=0.7)
+    hscale=.70,  % Use 70% of the horizontal space (default=0.7)
+    nomarginpar,  % No space for margin notes.
+    % Margin ratio: Use default (2:3) for binding and 1:1 for on-screen.
+    hmarginratio=1:1,  % disable this for binding (more space on binding side)
+    % showframe,  % enable to see the margins
+    heightrounded,  % Round size of document.
+    % inner=3.5cm, % Uniform margins
+    % outer=3.5cm, % Uniform margins
+]{geometry}
+
+
+%% Macros and colour definitions.
+\input{src/macros.tex}
+\input{src/colors.tex}
+
+% *****************************************************************************
+%                    Thesis configuration: Tweak this
+% *****************************************************************************
+%% Developer and debug options
+% \overfullrule=5pt % Uncomment this to show a black bar by overfull hboxes.
+% \usepackage{layout} % Uncomment and use the \layout command
+
+
+%% Bibliography
+% Be careful with reference files list, always avoid whitespaces!
+\addbibresource{bibliography/references.bib}
+
+%% Title parameters
+\title{KEIO Thesis Title}
+\author{Me}
+\authorID{82323374}
+\advisora{Associate Prof. - Japan}  
+\advisorb{Associate Prof. - Europe}
+\Year{\the\year}
+\Month{\the\month}
+\school{Graduate School of Science and Technology}
+\subschool{Integrated Design Engineering}
+
+% Debugging
+
+\begin {document}
+% ***************************************************************************
+%                              Front Matter
+% ***************************************************************************
+\frontmatter
+\pagestyle{empty}
+
+%% Build title 
+\maketitle
+
+%% Preface
+% Includes acknowledgements, dedications, funding, tables of contents
+% And tables of figures
+\IfFileExists{./preface.tex}{
+    \input{preface.tex}
+}
+
+% ***************************************************************************
+%                              Main Content
+% ***************************************************************************
+% Includes the introduction, body chapters and conclusions
+\mainmatter
+% \layout % Debug option that shows the layout of margins in the document
+\pagestyle{thesis}
+\hypersetup{linkcolor=documentLinkColor}
+\input{content.tex}
+
+% ***************************************************************************
+%                              Bibliography
+% ***************************************************************************
+\pagestyle{plain}
+\printbibliography[heading=bibintoc, title={References}]
+
+% ***************************************************************************
+%                              Appendices
+% ***************************************************************************
+\IfFileExists{./appendices.tex}{
+    \appendix
+    \pagestyle{thesis}
+    \input{appendices}
+    \clearpage
+}
+\backmatter
+\end{document}

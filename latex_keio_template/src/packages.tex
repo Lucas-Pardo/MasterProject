@@ -1,0 +1,61 @@
+%% Bibliography packages recommended for biblatex
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{comment}
+\usepackage{csquotes}
+\usepackage[style=numeric, sorting=ynt]{biblatex}
+
+%% Essential packages
+% Colors
+\usepackage{xcolor} 
+\colorlet{documentLinkColor}{blue}
+\colorlet{documentCitationColor}{black!80}
+\definecolor{headergray}{rgb}{0.5,0.5,0.5}
+% Hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+     colorlinks = true,
+     citecolor = documentCitationColor,
+     linkcolor = documentLinkColor,
+     urlcolor = documentLinkColor,
+}
+% Diagrams and \foreach
+\usepackage{tikz}
+\input{src/packages/tkiz_setup.tex}
+% Subfigures
+\usepackage{caption}
+\usepackage[list=true,listformat=simple]{subcaption}
+% Table of contents
+\usepackage{tocloft}  % Set TOC options.
+\setlength{\cftbeforetoctitleskip}{2.0em}
+\setlength{\cftaftertoctitleskip}{1.0em}
+\setlength{\cftbeforeloftitleskip}{2.0em}  % LOF: List of figures
+\setlength{\cftbeforelottitleskip}{2.0em}  % LOT: List of tables
+\cftsetpnumwidth{0.75em}  % Prevent overfull hbox on TOC numbers.
+% File system
+% https://ftp.gust.org.pl/TeX/macros/latex/contrib/currfile/currfile.pdf
+\usepackage{currfile}
+% Plots
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+% Good equations
+\usepackage[cmex10]{amsmath}
+% Code snippets
+\usepackage{listings}
+% Better include
+\usepackage{newclude}
+% Better references
+\usepackage[noabbrev,nameinlink]{cleveref}
+% Highlight with \hl{...} 
+\usepackage{soul}
+
+%% Additional packages
+
+% ``float'' algorithms
+\usepackage{algorithm}
+\usepackage{float}
+\newfloat{algorithm}{tbp}{lop}
+
+% Use \singlespace
+\usepackage{setspace}

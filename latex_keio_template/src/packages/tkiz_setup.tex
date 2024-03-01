@@ -1,0 +1,34 @@
+\usetikzlibrary{shapes,arrows,shadows,positioning,fit,backgrounds,automata}
+\usetikzlibrary{calc}
+
+\tikzset{
+    ->,  % makes the edges directed
+    >=stealth', % makes the arrow heads bold
+    node distance=3cm % specifies the minimum distance between two nodes
+    }
+\tikzstyle{startstop} = [
+    rectangle, rounded corners, minimum width=3cm, minimum height=1cm,
+    align=center, draw=black, fill=red!30
+    ]
+\tikzstyle{io} = [
+    rectangle, rounded corners, minimum width=3cm, minimum height=1cm,
+    align=center, draw=black, fill=blue!30
+    ]
+\tikzstyle{result} = [
+    trapezium, trapezium left angle=70, trapezium right angle=110, 
+    minimum width=3cm, minimum height=1cm, align=center, draw=black,
+    fill=gray!30
+    ]
+\tikzstyle{process} = [
+    rectangle, minimum width=3cm, minimum height=1cm, align=center, 
+    draw=black, fill=orange!30
+    ]
+\tikzstyle{decision} = [
+    diamond, minimum width=3cm, minimum height=1cm, align=center, draw=black,
+    fill=green!30
+    ]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+\tikzstyle{back box} = [draw, fill=gray!60, rounded corners, drop shadow,
+    inner sep=2em]
+\tikzstyle{roundbox} = [draw, fill=white!80, rounded corners, align=center]
+\tikzstyle{squarebox} = [draw, fill=white!80, very thick, align=center]

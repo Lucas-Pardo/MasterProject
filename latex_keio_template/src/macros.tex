@@ -1,0 +1,50 @@
+% Define any helpful macros here.
+
+% Parentheses, braces, brackets.
+\newcommand*{\parens}[1]{\left( #1 \right)}
+\newcommand*{\paren}[1]{\left( #1 \right)}
+\newcommand*{\braces}[1]{ \{ #1 \} }
+\newcommand*{\brackets}[1]{ \left[ #1 \right] }
+
+% Math stuff.
+\DeclareMathOperator*{\argmin}{\arg\!\min}
+\DeclareMathOperator*{\argmax}{\arg\!\max}
+
+% Default table and figure dimensions.
+\newcommand{\defaultTableWidth}{0.9 \textwidth}
+\newcommand{\defaultFigWidth}{0.65}
+\newcommand{\defaultAxisWidth}{0.7\textwidth}
+\newcommand{\defaultAxisHeight}{0.5\textwidth}
+
+% Footnote for an entire chapter -- no symbol, just text at the bottom.
+\newcommand{\chapternote}[1]{{%
+  \let\thempfn\relax% Remove footnote number printing mechanism
+  \footnotetext[0]{\emph{#1}}% Print footnote text
+}}
+
+\newcommand{\tabulargraphics}[2][width=0.25\textwidth]{
+  \raisebox{-.5\height}{\includegraphics[#1]{#2}}
+}
+
+% Path to a directory named as the current file.
+\newcommand{\subdir}{\currfiledir\currfilebase}
+
+% Creates a simple figure taking its filename and looking for it in the
+% \subdir. Its label will be the filename without extension. The caption must
+% be provided as well.
+\makeatletter
+\newcommand{\simplefigure}[2]{
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{\subdir/#1}
+        \caption{#2}
+        \filename@parse{#1}
+        \label{fig:\filename@base}
+    \end{figure}
+}
+\makeatother
+
+% Left superscripts and subscripts
+\newcommand\leftidx[3]{%
+  {\vphantom{#2}}#1#2#3%
+}
