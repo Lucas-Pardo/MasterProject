@@ -8,11 +8,12 @@ class SerialReader(threading.Thread):
     """ Defines a thread for reading and buffering serial data.
     By default, about 5MSamples are stored in the buffer.
     Data can be retrieved from the buffer by calling get(N)"""
-    def __init__(self, port, chunkSize=1024, chunks=5000):
+    def __init__(self, port, chunkSize=256, chunks=5000):
         threading.Thread.__init__(self)
         # circular buffer for storing serial data until it is 
         # fetched by the GUI
         self.buffer = np.zeros(chunks*chunkSize, dtype=np.uint16)
+        self.time_buffer = np.zeros(chunks*chunkSize, dtype=np.uintc)
         
         self.chunks = chunks        # number of chunks to store in the buffer
         self.chunkSize = chunkSize  # size of a single chunk (items, not bytes)
@@ -28,10 +29,11 @@ class SerialReader(threading.Thread):
         exitMutex = self.exitMutex
         dataMutex = self.dataMutex
         buffer = self.buffer
+        time_buffer = self.time_buffer
         port = self.port
         count = 0
         sps = None
-        lastUpdate = pg.ptime.time()
+        lastUpdate = time.perf_counter_ns()
         
         while True:
             # see whether an exit was requested
@@ -40,13 +42,16 @@ class SerialReader(threading.Thread):
                     break
             
             # read one full chunk from the serial port
-            data = port.read(self.chunkSize*2)
+            if port.inWaiting() > 0:
+                time_data = port.read(self.chunkSize*4)
+                data = port.read(self.chunkSize*2)
             # convert data to 16bit int numpy array
-            data = np.fromstring(data, dtype=np.uint16)
+            time_data = np.frombuffer(time_data, dtype=np.uintc)
+            data = np.frombuffer(data, dtype=np.uint16)
             
             # keep track of the acquisition rate in samples-per-second
             count += self.chunkSize
-            now = pg.ptime.time()
+            now = time.perf_counter_ns()
             dt = now-lastUpdate
             if dt > 1.0:
                 # sps is an exponential average of the running sample rate measurement
@@ -61,12 +66,13 @@ class SerialReader(threading.Thread):
             # and update the buffer pointer
             with dataMutex:
                 buffer[self.ptr:self.ptr+self.chunkSize] = data
+                time_buffer[self.ptr:self.ptr+self.chunkSize] = time_data
                 self.ptr = (self.ptr + self.chunkSize) % buffer.shape[0]
                 if sps is not None:
                     self.sps = sps
                 
                 
-    def get(self, num, downsample=1):
+    def get(self, num, refv=3.3, res_bits=10, downsample=1):
         """ Return a tuple (time_values, voltage_values, rate)
           - voltage_values will contain the *num* most recently-collected samples 
             as a 32bit float array. 
@@ -78,24 +84,29 @@ class SerialReader(threading.Thread):
         """
         with self.dataMutex:  # lock the buffer and copy the requested data out
             ptr = self.ptr
-            if ptr-num < 0:
+            if ptr < num:
                 data = np.empty(num, dtype=np.uint16)
                 data[:num-ptr] = self.buffer[ptr-num:]
                 data[num-ptr:] = self.buffer[:ptr]
+                time_data = np.empty(num, dtype=np.uintc)
+                time_data[:num-ptr] = self.time_buffer[ptr-num:]
+                time_data[num-ptr:] = self.time_buffer[:ptr]
             else:
                 data = self.buffer[self.ptr-num:self.ptr].copy()
+                time_data = self.time_buffer[self.ptr-num:self.ptr].copy()
             rate = self.sps
         
         # Convert array to float and rescale to voltage.
-        # Assume 3.3V / 12bits
-        # (we need calibration data to do a better job on this)
-        data = data.astype(np.float32) * (3.3 / 2**12)
+        data = data.astype(np.float32) * (refv / 2**res_bits)
+
         if downsample > 1:  # if downsampling is requested, average N samples together
-            data = data.reshape(num/downsample,downsample).mean(axis=1)
+            data = data.reshape(num//downsample,downsample).mean(axis=1)
             num = data.shape[0]
-            return np.linspace(0, (num-1)*1e-6*downsample, num), data, rate
-        else:
-            return np.linspace(0, (num-1)*1e-6, num), data, rate
+            # return np.linspace(0, (num-1)*1e-6*downsample, num), data, rate
+            return time_data[::downsample], data, rate
+
+        # return np.linspace(0, (num-1)*1e-6, num), data, rate
+        return time_data, data, rate
     
     def exit(self):
         """ Instruct the serial thread to exit."""
@@ -105,7 +116,7 @@ class SerialReader(threading.Thread):
 
 # Get handle to serial port
 # (your port string may vary; windows users need 'COMn')
-s = serial.Serial('/dev/ttyACM0')
+s = serial.Serial(port='COM4', baudrate=2000000)
 
 # Create the GUI
 app = pg.mkQApp()
@@ -121,7 +132,7 @@ thread.start()
 # samples and plot them.
 def update():
     global plt, thread
-    t,v,r = thread.get(1000*1024, downsample=100)
+    t,v,r = thread.get(1000*256, downsample=1)
     plt.plot(t, v, clear=True)
     plt.setTitle('Sample Rate: %0.2f'%r)
     
@@ -137,4 +148,4 @@ timer.start(0)
 
 # Start Qt event loop.    
 if sys.flags.interactive == 0:
-    app.exec_()
+    app.exec()

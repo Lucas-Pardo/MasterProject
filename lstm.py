@@ -22,9 +22,10 @@ for i, file in enumerate(files):
 # print(len(test_data))
 # print(test_data.head())
 
-train_data = TimeSeriesDataFrame(train_data, id_column="item_id", timestamp_column="timestamp")
-predictor = TimeSeriesPredictor(prediction_length=prediction_length, path="./Models", target="target", eval_metric="WQL")
-predictor.fit(train_data, presets="best_quality", time_limit=600)
+# train_data = TimeSeriesDataFrame(train_data, id_column="item_id", timestamp_column="timestamp")
+# predictor = TimeSeriesPredictor(prediction_length=prediction_length, path="./Models", target="target", eval_metric="WQL")
+# predictor.fit(train_data, presets="best_quality", time_limit=600)
+predictor = TimeSeriesPredictor.load(path="./Models")
 predictions = predictor.predict(train_data)
 # predictions.head()
 
@@ -33,9 +34,9 @@ predictions = predictor.predict(train_data)
 plt.figure()
 
 item_id = "t1"
-y_past = train_data.loc[item_id]["target"]
+y_past = train_data.loc[train_data["item_id"] == item_id]["target"]
 y_pred = predictions.loc[item_id]
-y_test = test_data.loc[item_id]["target"][-prediction_length:]
+y_test = test_data.loc[test_data["item_id"] == item_id]["target"][-prediction_length:]
 
 plt.plot(y_past, label="Past time series values")
 plt.plot(y_pred["mean"], label="Mean forecast")
